@@ -17,7 +17,7 @@ This open-source platform allows users to:
 - **Backend**: Go with Gin framework
 - **Database**: PostgreSQL with GORM ORM
 - **Authentication**: JWT
-- **Storage**: S3-compatible storage for images
+- **Storage**: Google Cloud Storage for images
 - **Caching**: Redis (optional)
 
 ## Project Structure
@@ -34,7 +34,9 @@ This open-source platform allows users to:
 │   ├── service/          # Business logic
 │   ├── handler/          # HTTP API handlers
 │   ├── middleware/       # HTTP middleware
+│   ├── router/           # Route configuration
 │   └── util/             # Utility functions
+│       └── storage/      # Storage utilities
 ├── pkg/                  # Public libraries that can be used by external applications
 ├── migrations/           # Database migrations
 ├── docs/                 # Documentation
@@ -43,6 +45,7 @@ This open-source platform allows users to:
 ├── .gitignore
 ├── go.mod
 ├── go.sum
+|── .env
 └── README.md
 ```
 
@@ -52,6 +55,7 @@ This open-source platform allows users to:
 
 - Go 1.23 or higher
 - PostgreSQL 14 or higher
+- Google Cloud account with Storage access
 - Docker and Docker Compose (optional)
 
 ### Setup Instructions
@@ -69,7 +73,13 @@ cd lost-and-found-kenya
 go mod download
 ```
 
-3. **Set up environment variables**
+3. **Set up Google Cloud Storage**
+
+- Create a bucket in Google Cloud Storage
+- Create a service account with Storage Admin permissions
+- Download the service account key JSON file
+
+4. **Set up environment variables**
 
 Create a `.env` file in the root directory:
 
@@ -77,6 +87,7 @@ Create a `.env` file in the root directory:
 # Server
 PORT=8080
 ENVIRONMENT=development
+LOG_LEVEL=info
 
 # Database
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/lostandfound?sslmode=disable
@@ -85,34 +96,29 @@ DATABASE_URL=postgres://postgres:postgres@localhost:5432/lostandfound?sslmode=di
 JWT_SECRET=your-256-bit-secret
 JWT_EXPIRATION_HOURS=24
 
-# Storage (Optional)
-S3_BUCKET=lostandfound
-S3_REGION=us-east-1
-S3_ENDPOINT=
-S3_ACCESS_KEY=
-S3_SECRET_KEY=
+# Google Cloud Storage
+GCS_BUCKET_NAME=lostandfound-kenya
+GCS_PROJECT_ID=your-gcp-project-id
+GCS_CREDENTIALS_FILE=path/to/credentials.json
 
 # Redis (Optional)
 REDIS_URL=redis://localhost:6379/0
-
-# Logging
-LOG_LEVEL=info
 ```
 
-4. **Set up the database**
+5. **Set up the database**
 
 ```bash
 # Create database in PostgreSQL
 createdb lostandfound
 ```
 
-5. **Run the application**
+6. **Run the application**
 
 ```bash
 go run cmd/api/main.go
 ```
 
-The server will start at http://localhost:8080.
+The server will start at http://localhost:9080.
 
 ### Running with Docker
 
@@ -142,6 +148,7 @@ docker-compose down
 | GET    | /api/v1/items/:id | Get item by ID    |
 | PUT    | /api/v1/items/:id | Update item       |
 | DELETE | /api/v1/items/:id | Delete item       |
+| POST   | /api/v1/items/:id/images | Upload image |
 
 ### Users
 
@@ -168,10 +175,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Project Lead - [Robinson Thairu](mailto:robinsonthairu@gmail.com)
 
-Project Link: [https://github.com/yourusername/lost-and-found-kenya](https://github.com/yourusername/lost-and-found-kenya)
+Project Link: [https://github.com/LostNFoundKe/lost-and-found-kenya](https://github.com/LostNFoundKe/lost-and-found-kenya)
 
 ## Acknowledgments
 
 * [Gin Web Framework](https://github.com/gin-gonic/gin)
 * [GORM](https://gorm.io/)
+* [Google Cloud Storage](https://cloud.google.com/storage)
 * All contributors who participate in this project
