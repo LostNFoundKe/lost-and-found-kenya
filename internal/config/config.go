@@ -1,66 +1,36 @@
 package config
 
-import (
-	"fmt"
-	"os"
-	"strconv"
-)
+import "github.com/spf13/viper"
 
 type Config struct {
-	// Server settings
-	Port        int
-	Environment string
-	LogLevel    string
-
-	// Database settings
-	DatabaseURL string
-
-	// Authentication settings
-	JWTSecret     string
-	JWTExpiration int // in hours
-
-	// Google Cloud Storage settings
-	GCSBucketName      string
-	GCSProjectID       string
-	GCSCredentialsFile string
-
-	// Optional Redis cache
-	RedisURL string
+	Port               int    `mapstructure:"PORT"`
+	Environment        string `mapstructure:"ENVIRONMENT"`
+	LogLevel           string `mapstructure:"LOG_LEVEL"`
+	DatabaseURL        string `mapstructure:"DB_URL"`
+	JWTSecret          string `mapstructure:"JWT_SECRET"`
+	JWTExpiration      int    `mapstructure:"JWT_EXPIRATION"`
+	GCSBucketName      string `mapstructure:"GCS_BUCKETNAME"`
+	GCSProjectID       string `mapstructure:"GCS_PROGECT_ID"`
+	GCSCredentialsFile string `mapstructure:"GCS_CREDENTIALS_FILE"`
+	RedisURL           string `mapstructure:"REDIS_URL"`
 }
 
-func Load() (*Config, error) {
-	port, err := strconv.Atoi(getEnv("PORT", "9080"))
+func Load(path string) (config Config, err error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigName("app")
+	viper.SetConfigType("env")
+	viper.AutomaticEnv()
+	err = viper.ReadInConfig()
 	if err != nil {
-		return nil, fmt.Errorf("invalid port: %w", err)
+		return
 	}
-
-	jwtExpiration, err := strconv.Atoi(getEnv("JWT_EXPIRATION_HOURS", "24"))
-	if err != nil {
-		return nil, fmt.Errorf("invalid JWT expiration: %w", err)
-	}
-
-	return &Config{
-		Port:        port,
-		Environment: getEnv("ENVIRONMENT", "development"),
-		LogLevel:    getEnv("LOG_LEVEL", "info"),
-
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/lostandfound?sslmode=disable"),
-
-		JWTSecret:     getEnv("JWT_SECRET", "your-256-bit-secret"),
-		JWTExpiration: jwtExpiration,
-
-		GCSBucketName:      getEnv("GCS_BUCKET_NAME", "lostandfound-kenya"),
-		GCSProjectID:       getEnv("GCS_PROJECT_ID", ""),
-		GCSCredentialsFile: getEnv("GCS_CREDENTIALS_FILE", ""),
-
-		// Optional Redis cache
-		RedisURL: getEnv("REDIS_URL", "redis://localhost:6379/0"),
-	}, nil
+	err = viper.Unmarshal(&config)
+	return
 }
 
-func getEnv(key, fallback string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return fallback
-}
+// func getEnv(key, fallback string) string {
+// 	if value, exists := os.LookupEnv(key); exists {
+// 		return value
+// 	}
+// 	return fallback
+// }
